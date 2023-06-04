@@ -82,7 +82,9 @@ def main(myblob: func.InputStream):
 
     with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as conn:
         with conn.cursor() as cursor:
-            cursor.execute(f"INSERT INTO Information VALUES ('{answer}');")
+            sql = "INSERT INTO Information2 VALUES (?)"
+            cursor.execute(sql,answer)
+            #cursor.execute(f"INSERT INTO Information VALUES ('{answer}');")
 def getDate(text):
     try:
         date = parser.parse(text, fuzzy=True, ignoretz=True)
