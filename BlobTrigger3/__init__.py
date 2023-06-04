@@ -7,15 +7,14 @@ import io
 import re
 import json
 import time
-#from dateutil import parser
+import pyodbc
+from dateutil import parser
 from msrest.authentication import  * #CognitiveServicesCredentials
 from azure.storage.blob import BlobServiceClient
 from azure.cognitiveservices.vision.computervision import ComputerVisionClient
 from azure.cognitiveservices. vision. computervision.models import OperationStatusCodes, VisualFeatureTypes
 import requests #pip install requests
 from PIL import Image, ImageDraw, ImageFont
-
-
 
 def main(myblob: func.InputStream):
     logging.info(f"Python blob trigger function processed blob \n"
@@ -56,11 +55,46 @@ def main(myblob: func.InputStream):
     notPVNNo = "LV40203412722"
     notTelNum = "+37122841151"
 
+    #connect to DB
+    server = 'databasehackx.database.windows.net'
+    database = 'databasehackx'
+    username = 'CloudSAc66b69ee'
+    password = '{KriksisPuksis123!}'   
+    driver= '{ODBC Driver 17 for SQL Server}'
 
+    answer = ""
     #print the strings of data from image
     if result.status == OperationStatusCodes.succeeded:
         read_results = result.analyze_result.read_results
         for analyzed_result in read_results:
             for line in analyzed_result.lines:
                 print(line.text)
+                answer = answer + " " + line.text
+                date = getDate(line.text)
+                bankCode = getBankCode(line.text)
                 logging.info(line.text)
+    
+    logging.info("DATUMS IR")
+    logging.info(date)
+    logging.info("BANK CODE")
+    logging.info(bankCode)
+    logging.info(answer)
+
+    with pyodbc.connect('DRIVER='+driver+';SERVER=tcp:'+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(f"INSERT INTO Information VALUES ('{answer}');")
+def getDate(text):
+    try:
+        date = parser.parse(text, fuzzy=True, ignoretz=True)
+        return date
+    except:
+        pass
+
+def getBankCode(text):
+    pattern = r'^LV\d{2}[A-Z]{4}\d{11}$'
+    regex = re.compile(pattern)
+    try:
+        bankCode = regex.match(text)
+        return bankCode
+    except:
+        pass

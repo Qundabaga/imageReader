@@ -7,3 +7,5 @@ msrest
 azure-storage-blob
 azure-cognitiveservices-vision-computervision
 pillow
+python-dateutil
+pyodbc
